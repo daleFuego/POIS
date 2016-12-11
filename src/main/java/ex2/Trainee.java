@@ -1,13 +1,22 @@
 package ex2;
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class Trainee {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
+		
+		if (true) {
+			args = new String[2];
+			args[0] = "-d";
+			args[1] = Trainee.class.getClassLoader().getResource("ex2_description.txt").getFile();
+
+			System.setIn(new FileInputStream(Trainee.class.getClassLoader().getResource("ex2_in.txt").getFile()));
+		}
 
 		final String SPLITTER = " ";
 

@@ -1,91 +1,99 @@
 package ex5;
-import java.io.BufferedInputStream;
+
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class Trainee {
 
-	public static void main(String[] args) {
+	private static int dimension, degree, rows, lines;
+	private static List<Double> input, desc;
+	private static List<List<Double>> descValues, inputValues;
 
-		final String SPLITTER = " ";
+	public static void main(String[] args) throws Exception {
 
-		int dimension;
-		long[][] polynomial;
-		double[] weights;
+		/*
+		 * if (true) { args = new String[2]; args[0] = "-d"; args[1] =
+		 * Trainee.class.getClassLoader().getResource("ex2_description.txt").
+		 * getFile();
+		 * 
+		 * System.setIn(new
+		 * FileInputStream(Trainee.class.getClassLoader().getResource(
+		 * "ex2_in.txt").getFile())); }
+		 */
 
-		Scanner scanner;
-		ArrayList<String> scannerValues = new ArrayList<String>();
-		ArrayList<ArrayList<String>> allParams = new ArrayList<ArrayList<String>>();
-		ArrayList<ArrayList<String>> inputValues = new ArrayList<ArrayList<String>>();
+		runTrainee(args);
+	}
 
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-d")) {
-				try {
-					scanner = new Scanner(new File(args[++i]));
+	@SuppressWarnings("resource")
+	private static void runTrainee(String[] args) throws Exception {
+		input = new ArrayList<Double>();
+		desc = new ArrayList<Double>();
+		int index = 2;
+		int iterator = 0;
 
-					while (scanner.hasNext()) {
-						scannerValues.add(scanner.nextLine());
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+		Scanner scanner = new Scanner(new File(args[1]));
+		while (scanner.hasNext()) {
+			desc.add(Double.valueOf(scanner.next()));
+		}
+
+		dimension = desc.get(0).intValue();
+		degree = desc.get(1).intValue();
+		rows = (desc.size() - 2) / (degree + 1);
+
+		descValues = new ArrayList<List<Double>>(rows);
+
+		for (int i = 0; i < rows; i++) {
+			descValues.add(new ArrayList<>(degree + 1));
+			for (int j = 0; j < degree + 1; j++) {
+				descValues.get(i).add(desc.get(index));
+				index++;
 			}
 		}
 
-		dimension = Integer.parseInt(new ArrayList<String>(Arrays.asList(scannerValues.get(0).split(SPLITTER))).get(0));
-		polynomial = new long[scannerValues.size()][dimension + 1];
-		weights = new double[scannerValues.size()];
-
-		for (int i = 1; i < scannerValues.size(); i++) {
-			inputValues.add(new ArrayList<String>(Arrays.asList(scannerValues.get(i).split(SPLITTER))));
+		scanner = new Scanner(System.in);
+		while (scanner.hasNext()) {
+			input.add(Double.valueOf(scanner.next()));
 		}
 
-		for (int i = 0; i < inputValues.size(); i++) {
-			for (int j = 0; j < inputValues.get(i).size(); j++) {
-				if (j < (inputValues.get(i).size() - 1)) {
-					polynomial[i][Integer.parseInt(
-							inputValues.get(i).get(j))] = polynomial[i][Integer.parseInt(inputValues.get(i).get(j))]
-									+ 1;
-				} else {
-					weights[i] = Double.parseDouble(inputValues.get(i).get(j));
-				}
+		lines = input.size() / (dimension);
+
+		inputValues = new ArrayList<List<Double>>(lines);
+		for (int i = 0; i < lines; i++) {
+			inputValues.add(new ArrayList<>(dimension));
+			for (int j = 0; j < dimension; j++) {
+				inputValues.get(i).add(input.get(iterator));
+				iterator++;
 			}
 		}
 
-		scannerValues = new ArrayList<String>();
+		for (int i = 0; i < lines; i++) {
+			calculateResults(inputValues.get(i), i);
+		}
+	}
 
-		try {
-			scanner = new Scanner(new BufferedInputStream(System.in));
-			while (scanner.hasNext()) {
-				scannerValues.add(scanner.nextLine());
+	private static void calculateResults(List<Double> readLine, int index) {
+		double result = 0;
+		double tmp = 1;
+		
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < degree; j++) {
+				tmp *= value(descValues.get(i).get(j), index);
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
+			tmp *= descValues.get(i).get(degree);
+			result += tmp;
+			tmp = 1;
 		}
+		
+		System.out.println(result);
+	}
 
-		for (String scan : scannerValues) {
-			allParams.add(new ArrayList<String>(Arrays.asList(scan.split(SPLITTER))));
+	private static double value(Double y, int i) {
+		if (y == 0) {
+			return 1;
 		}
-
-		for (ArrayList<String> currentParams : allParams) {
-			double totalResult = 0.0;
-
-			for (int i = 0; i < weights.length; i++) {
-				double lineResult = 1.0;
-
-				for (int j = 0; j < polynomial[i].length; j++) {
-					if (j == 0) {
-					} else {
-						lineResult = lineResult
-								* Math.pow(Double.parseDouble(currentParams.get(j - 1)), polynomial[i][j]);
-					}
-				}
-				totalResult = totalResult + lineResult * weights[i];
-			}
-			System.out.println(totalResult);
-		}
+		y -= 1;
+		return inputValues.get(i).get(y.intValue());
 	}
 }

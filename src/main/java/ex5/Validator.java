@@ -1,4 +1,5 @@
 package ex5;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +19,7 @@ public class Validator {
 
 	static Scanner scanner;
 	static Writer writer;
-	static final int SPLITS = 12;
+	static final int SPLITS = 2;
 	static final String TRAINIG_SET_FILENAME = "\\training_set";
 	static final String VALIDATION_SET_FILENAME = "\\validation_set";
 	static final String OUT_FILE_EXTENSION = ".txt";

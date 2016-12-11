@@ -1,136 +1,178 @@
 package ex5;
+
 import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Trainer {
 
+	private static int numberOfIterations = 0;
+	private static int dimension, degree;
+
+	private static List<List<Double>> descValues = new ArrayList<>();
+	private static List<List<Double>> inputValues = new ArrayList<>();
+	private static List<List<Double>> resultset = new ArrayList<>();
+	private static List<Double> tmpCoeffs = new ArrayList<>();
+	private static List<List<Double>> coeffs = new ArrayList<>();
+
+	private static boolean runTest = false;
+	private static Scanner scanner;
+
 	public static void main(String[] args) throws Exception {
 
-		int executedIterations = 1;
-		int numberOfIterations;
-		int numberOfElements;
-		double precisionValue = 0.15;
-		double tolerance = 0.0000001;
-		String configLine;
-		String trainSet;
-		String dataIn;
-		String dataOut;
+		if (runTest) {
+			args = new String[6];
+			args[1] = Trainer.class.getClassLoader().getResource("ex3_train_set.txt").getFile();
+			args[3] = Trainer.class.getClassLoader().getResource("ex3_data_in.txt").getFile();
+			args[5] = Trainer.class.getClassLoader().getResource("ex3_data_out.txt").getFile();
 
-		int[] xi;
-		double[] fixedParameters;
-		double[] Y;
-		double[][] Xi;
-		double[] calculatedParameters;
-		String[] lines;
-		boolean doAgain = true;
-
-		Scanner scanner;
-		ArrayList<String> contentValues = new ArrayList<String>();
-
-		try {
-			trainSet = args[1];
-			dataIn = args[3];
-			dataOut = args[5];
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
+			System.setIn(new FileInputStream(
+					Trainer.class.getClassLoader().getResource("ex3_description_in.txt").getFile()));
 		}
 
-		scanner = new Scanner(new File(trainSet));
-		while (scanner.hasNext()) {
-			contentValues.add(scanner.nextLine());
-		}
-
-		Xi = new double[contentValues.size()][];
-		Y = new double[contentValues.size()];
-		numberOfElements = contentValues.size();
-
-		scanner = new Scanner(new File(dataIn));
-		String[] tmpList = scanner.nextLine().split("=");
-		numberOfIterations = Integer.parseInt(tmpList[tmpList.length - 1]);
-
-		for (int i = 0; i < contentValues.size(); i++) {
-			lines = contentValues.get(i).split(" ");
-
-			Xi[i] = new double[lines.length - 1];
-			Y[i] = Double.parseDouble(lines[lines.length - 1]);
-
-			for (int j = 0; j < (lines.length - 1); j++) {
-				Xi[i][j] = Double.parseDouble(lines[j]);
-			}
-		}
-		contentValues.clear();
-
-		scanner = new Scanner(new InputStreamReader(System.in));
-		configLine = scanner.nextLine();
-		while (scanner.hasNext()) {
-			contentValues.add(scanner.nextLine());
-		}
-
-		fixedParameters = new double[contentValues.size()];
-		xi = new int[contentValues.size()];
-
-		for (int i = 0; i < contentValues.size(); i++) {
-			lines = contentValues.get(i).split(" ");
-
-			xi[i] = Integer.parseInt(lines[0]);
-			fixedParameters[i] = Double.parseDouble(lines[1]);
-		}
-
-		while (executedIterations != numberOfIterations && doAgain) {
-			calculatedParameters = fixedParameters.clone();
-
-			for (int j = 0; j < fixedParameters.length; j++) {
-				fixedParameters[j] = fixedParameters[j]
-						- (precisionValue * computeGradient(numberOfElements, Xi, xi, Y, calculatedParameters, j));
-				if (Math.abs(calculatedParameters[j] - fixedParameters[j]) < tolerance) {
-					doAgain = false;
-					break;
-				}
-			}
-
-			executedIterations++;
-		}
-
-		FileWriter fileWriter = new FileWriter(new File(dataOut));
-		fileWriter.write("iterations=" + executedIterations + "\n");
-		fileWriter.close();
-
-		System.out.println(configLine);
-
-		for (int i = 0; i < xi.length; i++) {
-			System.out.println(xi[i] + " " + fixedParameters[i]);
-		}
+		runTrainer(args);
 	}
 
-	static private double computeGradient(int N, double[][] Xi, int[] xi, double[] Y, double[] parameters,
-			int derivative) {
-		double result = 0;
+	private static void runTrainer(String[] args) throws Exception {
+		List<Double> input = new ArrayList<>();
+		List<Double> descritpion = new ArrayList<>();
+		int readChar = 0;
 
-		for (int i = 0; i < Xi.length; i++) {
-			double sum = 0;
-
-			for (int j = 0; j < parameters.length; j++) {
-				if (xi[j] > 0) {
-					sum += Xi[i][xi[j] - 1] * parameters[j];
-				} else {
-					sum += parameters[j];
-				}
+		scanner = new Scanner(System.in);
+		while (scanner.hasNext()) {
+			readChar++;
+			switch (readChar) {
+			case 1:
+				degree = Integer.valueOf(scanner.next());
+				break;
+			case 2:
+				dimension = Integer.valueOf(scanner.next());
+				break;
+			default:
+				descritpion.add(Double.valueOf(scanner.next()));
+				break;
 			}
-
-			if (xi[derivative] > 0) {
-				sum = (sum - Y[i]) * Xi[i][xi[derivative] - 1];
-			} else {
-				sum = (sum - Y[i]);
-			}
-
-			result += sum;
 		}
 
-		return result / N;
+		for (int i = 0; i < descritpion.size(); i += (dimension + 1)) {
+			descValues.add(descritpion.subList(i, (i + dimension + 1)));
+		}
+
+		scanner = new Scanner(new File(args[1]));
+		while (scanner.hasNext()) {
+			input.add(Double.valueOf(scanner.next()));
+		}
+
+		for (int i = 0; i < input.size(); i += degree + 1) {
+			inputValues.add(input.subList(i, (i + degree + 1)));
+		}
+
+		for (int i = 0; i < descValues.size(); i++) {
+			tmpCoeffs.add(descValues.get(i).get(descValues.get(i).size() - 1));
+		}
+
+		coeffs.add(new ArrayList<>(degree));
+
+		for (int i = 0; i < descValues.size(); i++) {
+			coeffs.get(coeffs.size() - 1).add(descValues.get(i).get(1));
+		}
+
+		scanner = new Scanner(new File(args[3]));
+		String iterations = scanner.next();
+		for (int i = 0; i < Integer.parseInt(iterations.substring(iterations.lastIndexOf("=") + 1)); i++) {
+			computeGradient();
+			numberOfIterations++;
+		}
+
+		System.out.println(degree + " " + dimension);
+		for (int i = 0; i < descValues.size(); i++) {
+			for (int j = 0; j < descValues.get(i).size(); j++) {
+				System.out.print(descValues.get(i).get(j));
+				if (j != descValues.get(i).size() - 1) {
+					System.out.print(" ");
+				}
+			}
+			if (i != descValues.size() - 1) {
+				System.out.println("");
+			}
+
+		}
+
+		PrintWriter printWriter = new PrintWriter(args[5], "UTF-8");
+		printWriter.print("iterations=" + (numberOfIterations));
+		printWriter.close();
 	}
 
+	private static void computeGradient() {
+		double tmp = 1, result = 0, tmp2 = 0, gradient = 0, learningRate = 0.15;
+		List<Double> Y = new ArrayList<>();
+		List<Double> gradients = new ArrayList<>();
+
+		for (int i = 0; i < inputValues.size(); i++) {
+			Y.add(inputValues.get(i).get(inputValues.get(i).size() - 1));
+		}
+
+		resultset = new ArrayList<>();
+
+		for (int i = 0; i < inputValues.size(); i++) {
+			for (int j = 0; j < descValues.size(); j++) {
+				for (int z = 0; z < descValues.get(j).size(); z++) {
+					if (z == (descValues.get(j).size() - 1)) {
+						tmp *= descValues.get(j).get(z);
+						continue;
+					}
+
+					if (descValues.get(j).get(z) != 0) {
+						tmp *= inputValues.get(i).get((int) (descValues.get(j).get(z) - 1));
+					}
+				}
+				result += tmp;
+				tmp = 1;
+			}
+
+			resultset.add(new ArrayList<>());
+			resultset.get(i).add(result);
+			resultset.get(i).add(Y.get(i));
+
+			result = 0;
+		}
+
+		for (int i = 0; i < degree; i++) {
+			for (int j = 0; j < resultset.size(); j++) {
+				gradient += inputValues.get(j).get(i) * (resultset.get(j).get(0) - resultset.get(j).get(1));
+			}
+			gradients.add(gradient);
+			gradient = 0;
+		}
+
+		for (int i = 0; i < resultset.size(); i++) {
+			tmp2 += (resultset.get(i).get(0) - resultset.get(i).get(1));
+		}
+
+		coeffs.add(new ArrayList<>(degree));
+
+		for (int i = 0; i < descValues.size() - 1; i++) {
+			coeffs.get(coeffs.size() - 1)
+					.add(coeffs.get(coeffs.size() - 2).get(i)
+							- (learningRate * gradients.get((gradients.size() - 1) - i) / resultset.size()));
+		}
+
+		coeffs.get(coeffs.size() - 1)
+				.add(coeffs.get(coeffs.size() - 2).get(degree)
+						- (learningRate * tmp2 / resultset.size()));
+
+		for (int i = 0; i < degree; i++) {
+			tmpCoeffs.set(i, tmpCoeffs.get(i) - (learningRate * gradients.get(i)));
+		}
+
+		tmpCoeffs.set(tmpCoeffs.size() - 1,
+				tmpCoeffs.get(tmpCoeffs.size() - 1) - (learningRate * tmp2));
+
+		for (int i = 0; i < descValues.size(); i++) {
+			descValues.get(i).set(1, coeffs.get(coeffs.size() - 1).get(i));
+		}
+	}
 }
