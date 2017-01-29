@@ -13,9 +13,9 @@ public class Trainee {
 		if (true) {
 			args = new String[2];
 			args[0] = "-d";
-			args[1] = Trainee.class.getClassLoader().getResource("ex2_description.txt").getFile();
+			args[1] = Trainee.class.getClassLoader().getResource("./Ex2_CorrectTrainee/ex2_description.txt").getFile();
 
-			System.setIn(new FileInputStream(Trainee.class.getClassLoader().getResource("ex2_in.txt").getFile()));
+			System.setIn(new FileInputStream(Trainee.class.getClassLoader().getResource("./Ex2_CorrectTrainee/ex2_in.txt").getFile()));
 		}
 
 		final String SPLITTER = " ";

@@ -24,8 +24,8 @@ public class Validator {
 	static final String VALIDATION_SET_FILENAME = "\\validation_set";
 	static final String OUT_FILE_EXTENSION = ".txt";
 
-	static boolean runTest = false;
-	static String testOption = OPTION_V;
+	static boolean runTest = true;
+	static String testOption = OPTION_E;
 
 	public static void main(String[] args) throws Exception {
 

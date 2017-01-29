@@ -1,0 +1,17 @@
+Your task is to assign movie recomendations using decision tree method applied for each person separately. 
+To use this approach both feature vector (representation) of the movies must be generated and set of possible decision 
+applicable in decision tree nodes must be selected. The features can be automaticaly extracted using API for TMDB database. 
+It may be a good idea to apply some automatic feature selection method to reduce dimensionality of the problem. 
+As a result you should submit the following files:
+
+    submission.csv
+    features.txt
+    tree.png 
+
+The submission.csv file should correspond with task.csv but all the NULL values should be replaced by predicted movie evaluation values. 
+The features.txt and tree.png should contain short but clear description of extracted features and image visualizing decision tree for 
+a selected person, respectively.
+
+The solution must be submitted as a single zip file which directly (without any unnecessary directory) contains expected deliverables.
+
+It should be assumed that all text files contain an empty line at the end of the file and that the Unix encoding of the end of line character is used.
